@@ -1,7 +1,7 @@
 .. _dglc:
 
 Data Land-Ice (DGLC)
-=================
+====================
 
 DGLC is normally used as a substitute for CESM/CISM running in NOEVOLVE mode.
 The various ways of running DGLC is referred to as its mode.
