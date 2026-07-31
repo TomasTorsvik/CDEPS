@@ -63,31 +63,31 @@ module dshr_stream_mod
   public :: shr_stream_dataDump          ! internal stream data for debugging
   public :: shr_stream_restIO            ! read or write to netcdf restart file
 
-  character(len=CS),parameter,public :: shr_stream_file_null    = 'not_set'
+  character(len=*),parameter,public :: shr_stream_file_null    = 'not_set'
 
   ! valid values for time extrapoloation
-  character(len=CS),parameter,public :: shr_stream_taxis_cycle  = 'cycle'
-  character(len=CS),parameter,public :: shr_stream_taxis_extend = 'extend'
-  character(len=CS),parameter,public :: shr_stream_taxis_limit  = 'limit'
+  character(len=*),parameter,public :: shr_stream_taxis_cycle  = 'cycle'
+  character(len=*),parameter,public :: shr_stream_taxis_extend = 'extend'
+  character(len=*),parameter,public :: shr_stream_taxis_limit  = 'limit'
 
   ! valid values for time interpolation
-  character(len=CS),parameter,public :: shr_stream_tinterp_lower   = 'lower'
-  character(len=CS),parameter,public :: shr_stream_tinterp_upper   = 'upper'
-  character(len=CS),parameter,public :: shr_stream_tinterp_nearest = 'nearest'
-  character(len=CS),parameter,public :: shr_stream_tinterp_linear  = 'linear'
-  character(len=CS),parameter,public :: shr_stream_tinterp_coszen  = 'coszen'
+  character(len=*),parameter,public :: shr_stream_tinterp_lower   = 'lower'
+  character(len=*),parameter,public :: shr_stream_tinterp_upper   = 'upper'
+  character(len=*),parameter,public :: shr_stream_tinterp_nearest = 'nearest'
+  character(len=*),parameter,public :: shr_stream_tinterp_linear  = 'linear'
+  character(len=*),parameter,public :: shr_stream_tinterp_coszen  = 'coszen'
 
   ! valid values for mapping interpolation
-  character(len=CS),parameter,public :: shr_stream_mapalgo_bilinear = 'bilinear'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_redist   = 'redist'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_nn       = 'nn'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_consf    = 'consf'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_consd    = 'consd'
-  character(len=CL),parameter,public :: shr_stream_mapalgo_mapfile  = 'mapfile:'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_none     = 'none'
+  character(len=*),parameter,public :: shr_stream_mapalgo_bilinear = 'bilinear'
+  character(len=*),parameter,public :: shr_stream_mapalgo_redist   = 'redist'
+  character(len=*),parameter,public :: shr_stream_mapalgo_nn       = 'nn'
+  character(len=*),parameter,public :: shr_stream_mapalgo_consf    = 'consf'
+  character(len=*),parameter,public :: shr_stream_mapalgo_consd    = 'consd'
+  character(len=*),parameter,public :: shr_stream_mapalgo_mapfile  = 'mapfile:'
+  character(len=*),parameter,public :: shr_stream_mapalgo_none     = 'none'
   ! nearest_lat: no source mesh; input is lat/time or lat/lev/time and is mapped
   ! to the nearest model latitude (all levels), then time interpolated
-  character(len=CS),parameter,public :: shr_stream_mapalgo_nearest_lat = 'nearest_lat'
+  character(len=*),parameter,public :: shr_stream_mapalgo_nearest_lat = 'nearest_lat'
 
   ! a useful derived type to use inside shr_streamType ---
   type shr_stream_file_type

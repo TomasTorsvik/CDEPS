@@ -478,7 +478,7 @@ contains
     type(ESMF_VM)                :: vm
     integer                      :: nvars
     integer                      :: i, stream_nlev, index, istat
-    integer                      :: n               ! model element loop index (nearest-lat map)
+    integer                      :: nind             ! model element loop index (nearest-lat map)
     character(len=CL)            :: stream_vector_names
     character(len=CL)            :: mapfile
     character(len=*), parameter  :: subname='(shr_sdat_init)'
@@ -548,9 +548,9 @@ contains
              return
           end if
           ! nearest source latitude for each local model element (model_lat is in degrees)
-          do n = 1, sdat%model_lsize
-             sdat%pstrm(ns)%latindex(n) = &
-                  minloc(abs(sdat%pstrm(ns)%src_lats(:) - sdat%model_lat(n)), dim=1)
+          do nind = 1, sdat%model_lsize
+             sdat%pstrm(ns)%latindex(nind) = &
+                  minloc(abs(sdat%pstrm(ns)%src_lats(:) - sdat%model_lat(nind)), dim=1)
           end do
           if (sdat%mainproc) then
              write(sdat%logunit,'(2a,i0,a)') subname, &
@@ -2376,14 +2376,7 @@ contains
           end if
        end if
 
-       if (rcode /= PIO_NOERR) then
-          rc = rcode
-          call shr_log_error(subName//'ERROR: reading zonal stream variable: '// &
-               trim(per_stream%fldlist_stream(nf)), rc=rc)
-          return
-       end if
-
-       if (debug_level > 0 .and. sdat%mainproc) then
+       if (sdat%mainproc) then
           write(sdat%logunit,'(a,4x,5a,i0)') subname, &
                ' zonal read ',trim(per_stream%fldlist_stream(nf)), &
                ' into ',trim(per_stream%fldlist_model(nf)),' at time index: ',nt
