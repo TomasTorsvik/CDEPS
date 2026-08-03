@@ -335,10 +335,12 @@ contains
           endif
 
           ! Determine name of latitude coordinate (optional; used by mapalgo='nearest_lat')
-          p => item(getElementsByTagname(streamnode, "lat_dimname"), 0)
-          if (associated(p)) then
-             call extractDataContent(p, streamdat(i)%lat_dimname)
-          endif
+          if (streamdat(i)%mapalgo == shr_stream_mapalgo_nearest_lat) then
+             p => item(getElementsByTagname(streamnode, "lat_dimname"), 0)
+             if (associated(p)) then
+                call extractDataContent(p, streamdat(i)%lat_dimname)
+             endif
+          end if
 
           ! Determine input data files
           p => item(getElementsByTagname(streamnode, "datafiles"), 0)
