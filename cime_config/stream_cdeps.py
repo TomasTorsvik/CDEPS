@@ -362,6 +362,10 @@ class StreamCDEPS(GenericXML):
                         ).replace("</file>", "")
 
             # lat_dimname is optional (only used by mapalgo='nearest_lat'); default to 'lat'
+            # The following only applies to cases where the stream_mapalgo is 'nearest_lat'.
+            # If this is not the case, then this variable is ignored. Currently, there is no out-of-the
+            # box scenario where the stream-mapalgo is 'nearest_lat', so this can only be turned on
+            # with user mods to user_nl_dXXX_streams modifications.
             stream_vars.setdefault("stream_lat_dimname", "lat")
 
             # append to stream xml file
