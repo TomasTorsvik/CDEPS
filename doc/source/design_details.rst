@@ -225,6 +225,7 @@ target stream. (see the overview of the :ref:`stream_description_file`).
      integer           :: yearLast     = -1                     ! last  year to use in t-axis (yyyymmdd)
      integer           :: yearAlign    = -1                     ! align yearFirst with this model year
      character(CS)     :: lev_dimname  = 'null'                 ! name of vertical dimension if any
+     character(CS)     :: lat_dimname  = 'lat'                  ! name of latitude coord/dim (mapalgo='nearest_lat' streams)
      character(CS)     :: taxMode      = shr_stream_taxis_cycle ! cycling option for time axis
      character(CS)     :: tInterpAlgo  = 'linear'               ! algorithm to use for time interpolation
      character(CS)     :: mapalgo      = 'bilinear'             ! type of mapping - default is 'bilinear'

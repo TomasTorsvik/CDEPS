@@ -118,6 +118,7 @@ The structure of ESMF config file is as follows::
   stream_vectors{id}:
   stream_mesh_file{id}:
   stream_lev_dimname{id}:
+  stream_lat_dimname{id}:
   stream_data_files{id}:
   stream_data_variables{id}:
   stream_offset{id}:
@@ -198,10 +199,19 @@ Definitions of each keys used in stream definition file
   calculated by dividing the area of overlap of the source and destination cells by the 
   area of the entire destination cell.
 
-  *consf*    = Same with *consd* but in this case it uses fraction area normalization 
-  (*ESMF_NORMTYPE_FRACAREA*). Here in addition to the weight calculation done for 
-  destination area normalization the weights are also divided by the fraction that the 
+  *consf*    = Same with *consd* but in this case it uses fraction area normalization
+  (*ESMF_NORMTYPE_FRACAREA*). Here in addition to the weight calculation done for
+  destination area normalization the weights are also divided by the fraction that the
   destination cell overlaps with the entire source grid.
+
+  *nearest_lat* = Nearest-latitude (zonal) mapping for source data that has no
+  horizontal mesh, i.e. data that is a function of latitude and time only
+  (``lat/time`` or ``lat/lev/time``). Rather than an ESMF regridding operation,
+  each model point is assigned the value at the nearest source latitude. Because
+  there is no source mesh, this option **requires** ``meshfile`` to be set to
+  ``none`` and the source latitude coordinate to be identified via ``lat_dimname``.
+  Conversely, all of the mesh-based algorithms above (*redist*, *nn*, *bilinear*,
+  *consd*, *consf*) **require** a valid ``meshfile``.
 
 .. note::
   CIME-CCS default is *bilinear*
@@ -301,11 +311,19 @@ Definitions of each keys used in stream definition file
 
 **meshfile**
 
-  Specifies filename for mesh for all fields on the stream.
+  Specifies filename for mesh for all fields on the stream. Must be set to
+  ``none`` when ``mapalgo`` is *nearest_lat* (the zonal mapping has no source
+  mesh); for every other ``mapalgo`` a valid mesh file is required.
 
 **lev_dimname**
 
   Specifies name of vertical dimension in stream.
+
+**lat_dimname**
+
+  Specifies name of the latitude dimension in the stream. Only used when
+  ``mapalgo`` is *nearest_lat*, where it identifies the source latitude
+  coordinate used to build the nearest-latitude mapping; ignored otherwise.
 
 .. note::
   CIME-CCS default is set to null

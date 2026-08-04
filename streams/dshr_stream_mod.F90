@@ -63,28 +63,31 @@ module dshr_stream_mod
   public :: shr_stream_dataDump          ! internal stream data for debugging
   public :: shr_stream_restIO            ! read or write to netcdf restart file
 
-  character(len=CS),parameter,public :: shr_stream_file_null    = 'not_set'
+  character(len=*),parameter,public :: shr_stream_file_null    = 'not_set'
 
   ! valid values for time extrapoloation
-  character(len=CS),parameter,public :: shr_stream_taxis_cycle  = 'cycle'
-  character(len=CS),parameter,public :: shr_stream_taxis_extend = 'extend'
-  character(len=CS),parameter,public :: shr_stream_taxis_limit  = 'limit'
+  character(len=*),parameter,public :: shr_stream_taxis_cycle  = 'cycle'
+  character(len=*),parameter,public :: shr_stream_taxis_extend = 'extend'
+  character(len=*),parameter,public :: shr_stream_taxis_limit  = 'limit'
 
   ! valid values for time interpolation
-  character(len=CS),parameter,public :: shr_stream_tinterp_lower   = 'lower'
-  character(len=CS),parameter,public :: shr_stream_tinterp_upper   = 'upper'
-  character(len=CS),parameter,public :: shr_stream_tinterp_nearest = 'nearest'
-  character(len=CS),parameter,public :: shr_stream_tinterp_linear  = 'linear'
-  character(len=CS),parameter,public :: shr_stream_tinterp_coszen  = 'coszen'
+  character(len=*),parameter,public :: shr_stream_tinterp_lower   = 'lower'
+  character(len=*),parameter,public :: shr_stream_tinterp_upper   = 'upper'
+  character(len=*),parameter,public :: shr_stream_tinterp_nearest = 'nearest'
+  character(len=*),parameter,public :: shr_stream_tinterp_linear  = 'linear'
+  character(len=*),parameter,public :: shr_stream_tinterp_coszen  = 'coszen'
 
   ! valid values for mapping interpolation
-  character(len=CS),parameter,public :: shr_stream_mapalgo_bilinear = 'bilinear'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_redist   = 'redist'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_nn       = 'nn'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_consf    = 'consf'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_consd    = 'consd'
-  character(len=CL),parameter,public :: shr_stream_mapalgo_mapfile  = 'mapfile:'
-  character(len=CS),parameter,public :: shr_stream_mapalgo_none     = 'none'
+  character(len=*),parameter,public :: shr_stream_mapalgo_bilinear = 'bilinear'
+  character(len=*),parameter,public :: shr_stream_mapalgo_redist   = 'redist'
+  character(len=*),parameter,public :: shr_stream_mapalgo_nn       = 'nn'
+  character(len=*),parameter,public :: shr_stream_mapalgo_consf    = 'consf'
+  character(len=*),parameter,public :: shr_stream_mapalgo_consd    = 'consd'
+  character(len=*),parameter,public :: shr_stream_mapalgo_mapfile  = 'mapfile:'
+  character(len=*),parameter,public :: shr_stream_mapalgo_none     = 'none'
+  ! nearest_lat: no source mesh; input is lat/time or lat/lev/time and is mapped
+  ! to the nearest model latitude (all levels), then time interpolated
+  character(len=*),parameter,public :: shr_stream_mapalgo_nearest_lat = 'nearest_lat'
 
   ! a useful derived type to use inside shr_streamType ---
   type shr_stream_file_type
@@ -114,6 +117,7 @@ module dshr_stream_mod
      integer           :: yearLast     = -1                     ! last  year to use in t-axis (yyyymmdd)
      integer           :: yearAlign    = -1                     ! align yearFirst with this model year
      character(len=CS) :: lev_dimname  = 'null'                 ! name of vertical dimension if any
+     character(len=CS) :: lat_dimname     = 'lat'                  ! name of latitude coord/dim (mapalgo='nearest_lat' streams)
      character(len=CS) :: taxMode      = shr_stream_taxis_cycle ! cycling option for time axis
      character(len=CS) :: tInterpAlgo  = 'linear'               ! algorithm to use for time interpolation
      character(len=CL) :: mapalgo      = 'bilinear'             ! type of mapping - default is 'bilinear'
@@ -244,15 +248,16 @@ contains
           p => item(getElementsByTagname(streamnode, "mapalgo"), 0)
           if (associated(p)) then
              call extractDataContent(p, streamdat(i)%mapalgo)
-             if (streamdat(i)%mapalgo /= shr_stream_mapalgo_bilinear .and. &
-                 streamdat(i)%mapalgo /= shr_stream_mapalgo_redist   .and. &
-                 streamdat(i)%mapalgo /= shr_stream_mapalgo_nn       .and. &
-                 streamdat(i)%mapalgo /= shr_stream_mapalgo_consf    .and. &
-                 streamdat(i)%mapalgo /= shr_stream_mapalgo_consd    .and. &
+             if (streamdat(i)%mapalgo /= shr_stream_mapalgo_bilinear    .and. &
+                 streamdat(i)%mapalgo /= shr_stream_mapalgo_redist      .and. &
+                 streamdat(i)%mapalgo /= shr_stream_mapalgo_nn          .and. &
+                 streamdat(i)%mapalgo /= shr_stream_mapalgo_consf       .and. &
+                 streamdat(i)%mapalgo /= shr_stream_mapalgo_consd       .and. &
+                 streamdat(i)%mapalgo /= shr_stream_mapalgo_nearest_lat .and. &
                  streamdat(i)%mapalgo(1:8) /= shr_stream_mapalgo_mapfile .and. &
                  streamdat(i)%mapalgo /= shr_stream_mapalgo_none) then
-                call shr_log_error("mapaglo must have a value of either bilinear, redist, nn, consf, consd or "//&
-                     " mapalgo(1:8) must equal mapfile: ", rc=rc)
+                call shr_log_error("mapaglo must have a value of either bilinear, redist, nn, consf, consd, "//&
+                     "nearest_lat, none or mapalgo(1:8) must equal mapfile: ", rc=rc)
                 return
              end if
           endif
@@ -328,6 +333,14 @@ contains
           else
              call shr_sys_abort(subname//" stream vertical level dimension name must be provided")
           endif
+
+          ! Determine name of latitude coordinate (optional; used by mapalgo='nearest_lat')
+          if (streamdat(i)%mapalgo == shr_stream_mapalgo_nearest_lat) then
+             p => item(getElementsByTagname(streamnode, "lat_dimname"), 0)
+             if (associated(p)) then
+                call extractDataContent(p, streamdat(i)%lat_dimname)
+             endif
+          end if
 
           ! Determine input data files
           p => item(getElementsByTagname(streamnode, "datafiles"), 0)
@@ -418,6 +431,8 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        call ESMF_VMBroadCast(vm, streamdat(i)%lev_dimname,  CS, 0, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_VMBroadCast(vm, streamdat(i)%lat_dimname,     CS, 0, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
        call ESMF_VMBroadCast(vm, streamdat(i)%taxmode,      CS, 0, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        call ESMF_VMBroadCast(vm, streamdat(i)%readmode,     CS, 0, rc=rc)
@@ -477,7 +492,8 @@ contains
        stream_yearFirst, stream_yearLast, stream_yearAlign, &
        stream_offset, stream_taxmode, stream_tintalgo, stream_dtlimit, &
        stream_fldlistFile, stream_fldListModel, stream_fileNames, &
-       logunit, compname, isroot_task, stream_src_mask_val, stream_dst_mask_val)
+       logunit, compname, isroot_task, stream_src_mask_val, stream_dst_mask_val, &
+       stream_lat_dimname)
 
     use ESMF, only : ESMF_VM, ESMF_VMGetCurrent
 
@@ -509,6 +525,7 @@ contains
     logical                     ,intent(in)              :: isroot_task            ! mainproc
     integer                     ,optional, intent(in)    :: stream_src_mask_val    ! source mask value
     integer                     ,optional, intent(in)    :: stream_dst_mask_val    ! destination mask value
+    character(len=*)            ,optional, intent(in)    :: stream_lat_dimname        ! latitude coord name (nearest_lat streams)
 
     ! local variables
     integer       :: n
@@ -532,6 +549,7 @@ contains
     streamdat(1)%meshFile     = trim(stream_meshFile)
     streamdat(1)%lev_dimname  = trim(stream_lev_dimname)
     streamdat(1)%mapalgo      = trim(stream_mapalgo)
+    if (present(stream_lat_dimname)) streamdat(1)%lat_dimname = trim(stream_lat_dimname)
 
     streamdat(1)%yearFirst    = stream_yearFirst
     streamdat(1)%yearLast     = stream_yearLast
@@ -751,6 +769,12 @@ contains
       else
          call shr_log_error("stream_lev_dimname must be provided", rc=rc)
          return
+      endif
+
+      ! Optional latitude coordinate name (used by mapalgo='nearest_lat'); defaults to 'lat'
+      if( ESMF_ConfigGetLen(config=CF, label="stream_lat_dimname"//mystrm//':', rc=rc) > 0 ) then
+        call ESMF_ConfigGetAttribute(CF,value=streamdat(i)%lat_dimname,label="stream_lat_dimname"//mystrm//':', rc=rc)
+        if (ChkErr(rc,__LINE__,u_FILE_u)) return
       endif
 
       ! Get a list of stream file names
